@@ -1,0 +1,121 @@
+<!-- Ant build script for compiling and running the Amazon Kinesis Connector to Sumologic.
+ Don't forget to fill in your AWS access credentials in AwsCredentials.properties
+ before trying to run it.  -->
+<project name="Amazon Kinesis Connector to Sumologic" default="run" basedir="./">
+    <property name="src.dir" location="${basedir}/src/" />
+    <property name="external.dir" location="${basedir}/external/" />
+    <dirset dir="${external.dir}/" includes="aws-java-sdk*" id="aws-sdk"/>
+    <pathconvert property="aws-sdk-dir" refid="aws-sdk" />
+    
+    <path id="sumologic.classpath">
+        <fileset dir="${aws-sdk-dir}/third-party" includes="**/*.jar" />
+        <fileset dir="${aws-sdk-dir}/lib" includes="**/*.jar" />
+        <fileset dir="${external.dir}" includes="**/*.jar" />
+        <pathelement location="${basedir}/build" />
+        <pathelement location="." />
+    </path>
+    
+    <target name="clean">
+        <delete includeEmptyDirs="true" failOnError="false">
+            <fileset dir="." includes="**/*.class" />
+            <fileset dir="${basedir}/build"/>
+            <fileset dir="${aws-sdk-dir}" />
+        </delete>
+    </target>
+
+    <target name="download">
+        <mkdir dir="${external.dir}/lib"/>
+        
+        <get src= "http://central.maven.org/maven2/com/amazonaws/amazon-kinesis-client/1.4.0/amazon-kinesis-client-1.4.0.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/com/amazonaws/amazon-kinesis-connectors/1.2.0/amazon-kinesis-connectors-1.2.0.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/com/google/protobuf/protobuf-java/2.6.1/protobuf-java-2.6.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+        <get src= "http://central.maven.org/maven2/org/apache/lucene/lucene-core/4.8.1/lucene-core-4.8.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+    	<get src= "http://central.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+    	<get src= "http://central.maven.org/maven2/com/ning/async-http-client/1.9.30/async-http-client-1.9.30.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+    	<get src= "http://central.maven.org/maven2/com/google/code/gson/gson/2.3.1/gson-2.3.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+    	
+        <get src= "https://hamcrest.googlecode.com/files/hamcrest-core-1.3.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+        
+        <get src= "http://sdk-for-java.amazonwebservices.com/latest/aws-java-sdk.zip" dest="${external.dir}" usetimestamp="true" verbose="true" />
+
+    </target>
+    
+    <target name="download-test">
+        <mkdir dir="${external.dir}/test"/>
+        
+        <get src= "http://central.maven.org/maven2/junit/junit/4.12/junit-4.12.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/com/google/guava/guava/18.0/guava-18.0.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/ch/qos/logback/logback-core/1.1.3/logback-core-1.1.3.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/com/jayway/jsonpath/json-path/2.0.0/json-path-2.0.0.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.9/jopt-simple-4.9.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/xmlunit/xmlunit/1.6/xmlunit-1.6.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/org/skyscreamer/jsonassert/1.2.3/jsonassert-1.2.3.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/org/slf4j/slf4j-simple/1.7.12/slf4j-simple-1.7.12.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+        <get src= "http://central.maven.org/maven2/com/github/tomakehurst/wiremock/1.56/wiremock-1.56.jar" dest="${external.dir}/test" usetimestamp="true" verbose="true" />
+    </target>
+
+    <target name="unzip">
+        <unzip src= "${external.dir}/aws-java-sdk.zip" dest="${external.dir}" />
+        <delete file= "${external.dir}/aws-java-sdk.zip" />
+    </target>
+
+    <target name="setup">
+        <antcall target="download"/>
+        <antcall target="unzip"/>
+    </target>
+    
+    <target name="setup-tests">
+        <antcall target="download-test"/>
+    </target>
+    
+    <target name="test">
+        <mkdir dir="${basedir}/build"/>
+        <javac srcdir="${src.dir}/main/java" 
+                       destdir="${basedir}/build" 
+                       classpathref="sumologic.classpath"
+                       includes="com/sumologic/kinesis/*.java, com/sumologic/kinesis/utils/*.java,
+                                 com/sumologic/client/*.java, com/sumologic/client/implementations/*.java"/>
+        <javac srcdir="${src.dir}/test/java" 
+               destdir="${basedir}/build" 
+               classpathref="sumologic.classpath"
+               includes="com/sumologic/kinesis/*.java, com/sumologic/kinesis/utils/*.java,
+                         com/sumologic/client/*.java, com/sumologic/client/implementations/*.java"/>
+
+		<junit haltonfailure="yes" 
+			   showoutput="yes" 
+			   fork="yes" 
+			   errorProperty="test.failed"
+			   failureProperty="test.failed">
+			<classpath refid="sumologic.classpath"/>			
+			<formatter
+			    type="brief"
+			    usefile="false"/>
+			
+			<batchtest fork="yes" todir="${reports.tests}">
+				<fileset dir="${src.dir}/test/java">
+			  		<include name="**/*Test*.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+    
+    <target name="main">
+        <mkdir dir="${basedir}/build"/>
+        <javac srcdir="${src.dir}/main/java" 
+        	   debug="on"
+               destdir="${basedir}/build" 
+               classpathref="sumologic.classpath"
+               includes="com/sumologic/kinesis/*.java, com/sumologic/kinesis/utils/*.java,
+                         com/sumologic/client/*.java, com/sumologic/client/implementations/*.java"/>
+        <java classname="com.sumologic.client.SumologicExecutor" classpathref="sumologic.classpath" fork="true" />
+	</target>
+
+    <target name="run">
+    	<antcall target="main"/>
+    </target>
+</project>
