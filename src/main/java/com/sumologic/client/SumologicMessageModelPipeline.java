@@ -1,11 +1,9 @@
 package com.sumologic.client;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
-import com.sumologic.client.SimpleKinesisMessageModel;
-import com.sumologic.client.CloudWatchMessageModelSumologicTransformer;
 import com.sumologic.client.implementations.SumologicEmitter;
+import com.sumologic.client.model.SimpleKinesisMessageModel;
 import com.amazonaws.services.kinesis.connectors.interfaces.IKinesisConnectorPipeline;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.impl.BasicMemoryBuffer;
@@ -28,9 +26,8 @@ import com.amazonaws.services.kinesis.connectors.interfaces.IFilter;
  */
 public class SumologicMessageModelPipeline implements
         IKinesisConnectorPipeline<SimpleKinesisMessageModel, String> {
+    private static final Logger LOG = Logger.getLogger(SumologicMessageModelPipeline.class.getName());
 
-  private static final Log LOG = LogFactory.getLog(SumologicMessageModelPipeline.class);
-  
     @Override
     public IEmitter<String> getEmitter(KinesisConnectorConfiguration configuration) {
         return new SumologicEmitter(configuration);

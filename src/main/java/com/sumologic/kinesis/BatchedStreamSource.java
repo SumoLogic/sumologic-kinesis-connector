@@ -11,11 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
-import com.sumologic.client.SimpleKinesisMessageModel;
-
+import com.sumologic.client.model.SimpleKinesisMessageModel;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.model.PutRecordRequest;
 
@@ -24,7 +22,7 @@ import com.amazonaws.services.kinesis.model.PutRecordRequest;
  * input file specified in the constructor and batches up records before emitting them.
  */
 public class BatchedStreamSource extends StreamSource {
-    private static Log LOG = LogFactory.getLog(BatchedStreamSource.class);
+    private static final Logger LOG = Logger.getLogger(BatchedStreamSource.class.getName());
 
     private static int NUM_BYTES_PER_PUT_REQUEST = 50000;
     List<SimpleKinesisMessageModel> buffer;

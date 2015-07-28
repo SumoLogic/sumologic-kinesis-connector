@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 import com.sumologic.client.KinesisConnectorForSumologicConfiguration;
 import com.sumologic.kinesis.KinesisConnectorExecutorBase;
@@ -18,8 +17,7 @@ import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
  * 
  */
 public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExecutorBase<T, U> {
-
-    private static final Log LOG = LogFactory.getLog(KinesisConnectorExecutor.class);
+    private static final Logger LOG = Logger.getLogger(KinesisConnectorExecutor.class.getName());
 
     // Create Stream Source constants
     private static final String CREATE_STREAM_SOURCE = "createStreamSource";

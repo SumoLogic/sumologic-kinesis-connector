@@ -4,9 +4,11 @@
 <project name="Amazon Kinesis Connector to Sumologic" default="run" basedir="./">
     <property name="src.dir" location="${basedir}/src/" />
     <property name="external.dir" location="${basedir}/external/" />
+    <mkdir dir="${external.dir}/"/>
     <dirset dir="${external.dir}/" includes="aws-java-sdk*" id="aws-sdk"/>
     <pathconvert property="aws-sdk-dir" refid="aws-sdk" />
-    
+
+
     <path id="sumologic.classpath">
         <fileset dir="${aws-sdk-dir}/third-party" includes="**/*.jar" />
         <fileset dir="${aws-sdk-dir}/lib" includes="**/*.jar" />
@@ -34,6 +36,7 @@
     	<get src= "http://central.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
     	<get src= "http://central.maven.org/maven2/com/ning/async-http-client/1.9.30/async-http-client-1.9.30.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
     	<get src= "http://central.maven.org/maven2/com/google/code/gson/gson/2.3.1/gson-2.3.1.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
+    	<get src= "http://central.maven.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
     	
         <get src= "https://hamcrest.googlecode.com/files/hamcrest-core-1.3.jar" dest="${external.dir}/lib" usetimestamp="true" verbose="true"/>
         
