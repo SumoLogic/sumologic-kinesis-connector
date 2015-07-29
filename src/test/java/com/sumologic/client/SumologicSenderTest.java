@@ -16,7 +16,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.sumologic.client.CloudWatchMessageModelSumologicTransformer;
 import com.sumologic.client.SumologicSender;
 import com.sumologic.client.implementations.SumologicEmitter;
 
@@ -68,18 +67,7 @@ public class SumologicSenderTest {
     }
   }
   
-  @Test
-  public void decompressGzipTest() {
-    String url = MOCKED_HOST + MOCKED_COLLECTION;
-    
-    String data = "a string of characters";
-    
-    byte[] compressData = SumologicSender.compressGzip(data);
-    String result = CloudWatchMessageModelSumologicTransformer.decompressGzip(compressData);
-    
-    Assert.assertTrue(data.equals(result));
-  }
-  
+
   private void mockEmitMessages () {
     WireMock.stubFor(WireMock.post(WireMock.urlMatching(MOCKED_COLLECTION))
           .willReturn(WireMock.aResponse()

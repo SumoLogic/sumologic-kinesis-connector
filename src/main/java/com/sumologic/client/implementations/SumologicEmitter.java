@@ -2,16 +2,12 @@ package com.sumologic.client.implementations;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 import com.sumologic.client.SumologicSender;
 import com.sumologic.client.KinesisConnectorForSumologicConfiguration;
-
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
 import com.amazonaws.services.kinesis.connectors.UnmodifiableBuffer;
 import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
@@ -22,7 +18,7 @@ import com.amazonaws.services.kinesis.connectors.interfaces.IEmitter;
  * Sumologic.
  */
 public class SumologicEmitter implements IEmitter<String> {
-    private static final Log LOG = LogFactory.getLog(SumologicEmitter.class);
+    private static final Logger LOG = Logger.getLogger(SumologicEmitter.class.getName());
 
     private SumologicSender sender;
     private KinesisConnectorForSumologicConfiguration config;

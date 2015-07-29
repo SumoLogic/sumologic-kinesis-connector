@@ -48,7 +48,7 @@ public class SumologicSender {
 	    BoundRequestBuilder builder = null;
 	    builder = this.clientPreparePost(url);
 	    
-	    byte[] compressedData = SumologicSender.compressGzip(data);
+	    byte[] compressedData = SumologicKinesisUtils.compressGzip(data);
 	    
 	    builder.setHeader("Content-Encoding", "gzip");
 	    builder.setBody(compressedData);
@@ -80,30 +80,5 @@ public class SumologicSender {
     else{ 
       return true;
     } 
-	}
-	
-	public static byte[] compressGzip(String data) {
-	  if (data == null || data.length() == 0) {
-      return null;
-	  }
-	  
-	  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
-	  GZIPOutputStream gzip;
-	  try {
-      gzip = new GZIPOutputStream(outputStream);
-    } catch (IOException e) {
-      LOG.error("Cannot compress into GZIP "+e.getMessage());
-      return null;
-    }
-	  
-    // Put data into the GZIP buffer
-	  try {
-      gzip.write(data.getBytes("UTF-8"));
-      gzip.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-	
-	  return outputStream.toByteArray();
 	}
 }

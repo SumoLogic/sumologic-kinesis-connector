@@ -7,8 +7,8 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import com.amazonaws.services.kinesis.model.Record;
-import com.sumologic.client.CloudWatchMessageModelSumologicTransformer;
-import com.sumologic.client.SimpleKinesisMessageModel;
+import com.sumologic.client.model.CloudWatchLogsMessageModel;
+import com.sumologic.client.model.SimpleKinesisMessageModel;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -61,7 +61,7 @@ public class CloudWatchMessageModelSumologicTransformerTest {
                           + "}"
                         +"";
     
-    byte[] compressData = SumologicSender.compressGzip(jsonData);
+    byte[] compressData = SumologicKinesisUtils.compressGzip(jsonData);
     
     ByteBuffer bufferedData = null;
     try {
@@ -97,7 +97,7 @@ public class CloudWatchMessageModelSumologicTransformerTest {
                         + "}"
                       +"";
                     
-    byte[] compressData = SumologicSender.compressGzip(jsonData);
+    byte[] compressData = SumologicKinesisUtils.compressGzip(jsonData);
     
     ByteBuffer bufferedData = null;
     try {
@@ -139,7 +139,7 @@ public class CloudWatchMessageModelSumologicTransformerTest {
                         + "}"
                       +"";
                     
-    byte[] compressData = SumologicSender.compressGzip(jsonData);
+    byte[] compressData = SumologicKinesisUtils.compressGzip(jsonData);
     
     ByteBuffer bufferedData = null;
     try {
