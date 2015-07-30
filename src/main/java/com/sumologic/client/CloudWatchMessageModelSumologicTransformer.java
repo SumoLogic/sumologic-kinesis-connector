@@ -42,6 +42,7 @@ public class CloudWatchMessageModelSumologicTransformer
     public String fromClass(CloudWatchLogsMessageModel message) {
       String jsonMessage = "";
       JSONObject outputObject;
+      int recordsInMessageCount = 0;
      
       List<LogEvent> logEvents = message.getLogEvents();
       int logEventsSize = logEvents.size();
@@ -65,6 +66,7 @@ public class CloudWatchMessageModelSumologicTransformer
           LOG.error("Unable to convert message into JSON String: "+e.getMessage());
         }
         jsonMessage += outputObject.toString();
+        recordsInMessageCount++;
         if (i < logEventsSize - 1) {
           jsonMessage += '\n';
         }
