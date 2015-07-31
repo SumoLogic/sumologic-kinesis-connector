@@ -40,6 +40,10 @@ public class SumologicSender {
     builder = this.clientPreparePost(url);
     
     byte[] compressedData = SumologicKinesisUtils.compressGzip(data);
+    if (compressedData == null) {
+      LOG.error("Unable to compress data to send: "+data);
+      return false;
+    }
     
     LOG.info("HTTP POST body of size " + compressedData.length + " bytes");
     
