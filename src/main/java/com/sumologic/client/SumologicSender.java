@@ -1,13 +1,10 @@
 package com.sumologic.client;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.HttpClient;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
@@ -43,6 +40,10 @@ public class SumologicSender {
     builder = this.clientPreparePost(url);
     
     byte[] compressedData = SumologicKinesisUtils.compressGzip(data);
+    if (compressedData == null) {
+      LOG.error("Unable to compress data to send: "+data);
+      return false;
+    }
     
     LOG.info("HTTP POST body of size " + compressedData.length + " bytes");
     
