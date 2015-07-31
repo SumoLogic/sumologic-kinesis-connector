@@ -59,6 +59,7 @@ public class SumologicEmitter implements IEmitter<String> {
       for(String record: records) {
         currentBatch.add(record);
         unprocessedRecords.poll();
+        message += record;
         message += "\n";
         recordCount++;
         if (recordCount >= batchSize) {
