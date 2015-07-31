@@ -23,7 +23,6 @@ public class SumologicEmitterTest {
   private static final String MOCKED_HOST = "http://localhost:8089";
   private static final String MOCKED_COLLECTION = "/sumologic/collections/1234";
 
-
   @Before
   public void setUp() {
     mockEmitMessages();
