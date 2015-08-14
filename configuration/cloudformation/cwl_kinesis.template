@@ -1,0 +1,846 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "A sample SumoLogic/Kinesis stack that hooks up with real-time data from CloudWatch Logs using a Subscription Filter. **NOTE** This template creates one or more Amazon EC2 instances, an Amazon Kinesis stream. You will be billed for the AWS resources used if you create a stack from this template. This template requires setting the \"Create IAM resources\" parameter to True.",
+
+  "Parameters" : {
+
+    "KeyName": {
+      "Description" : "The name of an existing key pair to enable SSH access to the EC2 instances",
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+
+    "InstanceType" : {
+      "Description" : "EC2 instance type for the SumoLogic nodes",
+      "Type" : "String",
+      "Default" : "t2.small",
+      "AllowedValues" : [ 
+        "t2.micro", 
+        "t2.small", 
+        "m3.medium", 
+        "m3.large", 
+        "m3.xlarge", 
+        "m3.2xlarge", 
+        "c3.large", 
+        "c3.xlarge", 
+        "c3.2xlarge", 
+        "c3.4xlarge", 
+        "c3.8xlarge", 
+        "c4.large", 
+        "c4.xlarge", 
+        "c4.2xlarge", 
+        "c4.4xlarge", 
+        "c4.8xlarge", 
+        "r3.large", 
+        "r3.xlarge", 
+        "r3.2xlarge", 
+        "r3.4xlarge", 
+        "r3.8xlarge", 
+        "i2.xlarge", 
+        "i2.2xlarge", 
+        "i2.4xlarge", 
+        "i2.8xlarge", 
+        "d2.xlarge", 
+        "d2.2xlarge", 
+        "d2.4xlarge", 
+        "d2.8xlarge", 
+        "hi1.4xlarge", 
+        "hs1.8xlarge", 
+        "cr1.8xlarge", 
+        "cc2.8xlarge"
+       ],
+      "ConstraintDescription" : "Must be a valid EC2 instance type"
+    },
+
+    "SumoLogicHttpCollectorURL" : {
+      "Description" : "The URL of a SumoLogic Http Collector source",
+      "Type": "String"
+    },
+
+    "AllowedIpSource" : {
+      "Description" : "The IP address range that can be used to access the EC2 instances via SSH",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+    },
+
+    "ClusterSize" : {
+      "Description" : "The number of SumoLogic VPC-Kinesis nodes",
+      "Type" : "Number",
+      "Default" : "1"
+    },
+
+    "LogGroupName": {
+      "Description": "The CloudWatch Logs log group to use as the source for the subscription that feeds the SumoLogic cluster",
+      "Type": "String",
+      "Default": ""
+    },
+
+    "MonitorStack" : {
+      "Description": "Push logs from KCL and CloudFormation to CloudWatch Logs",
+      "Type": "String",
+      "Default" : "false",
+      "AllowedValues" : ["true", "false"]
+    },
+
+    "LogFormat" : {
+      "Description": "Choose the format that best describes the type of logs in the selected log group",
+      "Type": "String",
+      "Default" : "Amazon VPC Flow Logs",
+      "AllowedValues" : ["Amazon VPC Flow Logs", "AWS Lambda", "AWS CloudTrail", "Custom"]
+    },
+
+    "SubscriptionFilterPattern" : {
+      "Description": "Optional filter pattern for custom log formats - Use this only if LogFormat is set to Custom",
+      "Type": "String"
+    },
+
+    "KinesisShards": {
+      "Description": "Number of shards to create for the Kinesis subscription stream",
+      "Type": "Number",
+      "Default" : "1",
+      "MinValue" : "1"
+    }
+  },
+
+  "Mappings" : {
+
+    "Constants" : {
+      "DownloadPath"   : { "Value": "sumologic-kinesis-connector" },
+      "DownloadMainPropertyFile"   : { "Value": "SumologicConnector.properties" },
+      "DownloadLog4JPropertyFile"   : { "Value": "log4j.properties" },
+      "DownloadWrapperScript"   : { "Value": "SumoVPCKinesis.bash" },
+      "DownloadJarFile"   : { "Value": "kinesis-sumologic-connector-0.1.jar" }
+    },
+
+    "AWSInstanceType2Arch" : {
+      "t2.micro"    : { "Arch" : "HVM64"  },
+      "t2.small"    : { "Arch" : "HVM64"  },
+      "t2.medium"   : { "Arch" : "HVM64"  },
+      "m3.medium"   : { "Arch" : "HVM64"  },
+      "m3.large"    : { "Arch" : "HVM64"  },
+      "m3.xlarge"   : { "Arch" : "HVM64"  },
+      "m3.2xlarge"  : { "Arch" : "HVM64"  },
+      "c3.large"    : { "Arch" : "HVM64"  },
+      "c3.xlarge"   : { "Arch" : "HVM64"  },
+      "c3.2xlarge"  : { "Arch" : "HVM64"  },
+      "c3.4xlarge"  : { "Arch" : "HVM64"  },
+      "c3.8xlarge"  : { "Arch" : "HVM64"  },
+      "c4.large"    : { "Arch" : "HVM64"  },
+      "c4.xlarge"   : { "Arch" : "HVM64"  },
+      "c4.2xlarge"  : { "Arch" : "HVM64"  },
+      "c4.4xlarge"  : { "Arch" : "HVM64"  },
+      "c4.8xlarge"  : { "Arch" : "HVM64"  },
+      "r3.large"    : { "Arch" : "HVM64"  },
+      "r3.xlarge"   : { "Arch" : "HVM64"  },
+      "r3.2xlarge"  : { "Arch" : "HVM64"  },
+      "r3.4xlarge"  : { "Arch" : "HVM64"  },
+      "r3.8xlarge"  : { "Arch" : "HVM64"  },
+      "i2.xlarge"   : { "Arch" : "HVM64"  },
+      "i2.2xlarge"  : { "Arch" : "HVM64"  },
+      "i2.4xlarge"  : { "Arch" : "HVM64"  },
+      "i2.8xlarge"  : { "Arch" : "HVM64"  },
+      "d2.xlarge"   : { "Arch" : "HVM64"  },
+      "d2.2xlarge"  : { "Arch" : "HVM64"  },
+      "d2.4xlarge"  : { "Arch" : "HVM64"  },
+      "d2.8xlarge"  : { "Arch" : "HVM64"  },
+      "hi1.4xlarge" : { "Arch" : "HVM64"  },
+      "hs1.8xlarge" : { "Arch" : "HVM64"  },
+      "cr1.8xlarge" : { "Arch" : "HVM64"  },
+      "cc2.8xlarge" : { "Arch" : "HVM64"  }
+    },
+
+    "AWSRegionArch2AMI" : {
+      "us-east-1"        : {"PV64" : "ami-1ccae774", "HVM64" : "ami-1ecae776", "HVMG2" : "ami-8c6b40e4"},
+      "us-west-2"        : {"PV64" : "ami-ff527ecf", "HVM64" : "ami-e7527ed7", "HVMG2" : "ami-abbe919b"},
+      "us-west-1"        : {"PV64" : "ami-d514f291", "HVM64" : "ami-d114f295", "HVMG2" : "ami-f31ffeb7"},
+      "eu-west-1"        : {"PV64" : "ami-bf0897c8", "HVM64" : "ami-a10897d6", "HVMG2" : "ami-d5bc24a2"},
+      "eu-central-1"     : {"PV64" : "ami-ac221fb1", "HVM64" : "ami-a8221fb5", "HVMG2" : "ami-7cd2ef61"},
+      "ap-northeast-1"   : {"PV64" : "ami-27f90e27", "HVM64" : "ami-cbf90ecb", "HVMG2" : "ami-6318e863"},
+      "ap-southeast-1"   : {"PV64" : "ami-acd9e8fe", "HVM64" : "ami-68d8e93a", "HVMG2" : "ami-3807376a"},
+      "ap-southeast-2"   : {"PV64" : "ami-ff9cecc5", "HVM64" : "ami-fd9cecc7", "HVMG2" : "ami-89790ab3"},
+      "sa-east-1"        : {"PV64" : "ami-bb2890a6", "HVM64" : "ami-b52890a8", "HVMG2" : "NOT_SUPPORTED"},
+      "cn-north-1"       : {"PV64" : "ami-fa39abc3", "HVM64" : "ami-f239abcb", "HVMG2" : "NOT_SUPPORTED"}
+    }
+  },
+  
+  "Conditions" : {
+    "CreateCWLForStack" : {"Fn::Equals" : [{"Ref" : "MonitorStack"}, "true"]},
+    "NoKeySpecified" : {"Fn::Equals" : [{"Ref" : "KeyName"}, ""]}
+  },
+
+  "Resources" : {
+
+      "KCLLeasesTable": {
+         "Type": "AWS::DynamoDB::Table",
+         "Properties": {
+        "TableName": { "Ref": "AWS::StackName" },
+          "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : "10",
+          "WriteCapacityUnits" : "10"
+        },
+        "AttributeDefinitions" : [
+          {
+            "AttributeName" : "leaseKey",
+            "AttributeType" : "S"   
+          }
+        ],
+        "KeySchema" : [
+          {
+            "AttributeName" : "leaseKey",
+            "KeyType" : "HASH"
+          }
+        ]
+      }
+    },
+
+    "KinesisSubscriptionStream": {
+      "Type": "AWS::Kinesis::Stream",
+      "Properties" :  {
+        "ShardCount": { "Ref": "KinesisShards" }
+      }
+    },
+
+    "SumoLogicVPC" : {
+      "Type" : "AWS::EC2::VPC",
+      "Properties" : {
+        "CidrBlock" : "10.0.0.0/16",
+        "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} }, { "Key": "Name", "Value" : "SumoLogic_VPC" } ]
+      }
+    },
+
+    "Subnet" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "SumoLogicVPC" },
+        "CidrBlock" : "10.0.0.0/24",
+        "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } ]
+      }
+    },
+
+    "InternetGateway" : {
+      "Type" : "AWS::EC2::InternetGateway",
+      "Properties" : {
+        "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } ]
+      }
+    },
+
+    "AttachGateway" : {
+       "Type" : "AWS::EC2::VPCGatewayAttachment",
+       "Properties" : {
+         "VpcId" : { "Ref" : "SumoLogicVPC" },
+         "InternetGatewayId" : { "Ref" : "InternetGateway" }
+       }
+    },
+
+    "RouteTable" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : {"Ref" : "SumoLogicVPC"},
+        "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } ]
+      }
+    },
+
+    "Route" : {
+      "Type" : "AWS::EC2::Route",
+      "DependsOn" : "AttachGateway",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "RouteTable" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "InternetGateway" }
+      }
+    },
+
+    "SubnetRouteTableAssociation" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "Subnet" },
+        "RouteTableId" : { "Ref" : "RouteTable" }
+      }
+    },
+
+    "NetworkAcl" : {
+      "Type" : "AWS::EC2::NetworkAcl",
+      "Properties" : {
+        "VpcId" : {"Ref" : "SumoLogicVPC"},
+        "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"} } ]
+      }
+    },
+
+    "InboundSSHNetworkAclEntry" : {
+      "Type" : "AWS::EC2::NetworkAclEntry",
+      "Properties" : {
+        "NetworkAclId" : {"Ref" : "NetworkAcl"},
+        "RuleNumber" : "101",
+        "Protocol" : "6",
+        "RuleAction" : "allow",
+        "Egress" : "false",
+        "CidrBlock" : "0.0.0.0/0",
+        "PortRange" : {"From" : "22", "To" : "22"}
+      }
+    },
+
+    "InboundResponsePortsNetworkAclEntry" : {
+      "Type" : "AWS::EC2::NetworkAclEntry",
+      "Properties" : {
+        "NetworkAclId" : {"Ref" : "NetworkAcl"},
+        "RuleNumber" : "102",
+        "Protocol" : "6",
+        "RuleAction" : "allow",
+        "Egress" : "false",
+        "CidrBlock" : "0.0.0.0/0",
+        "PortRange" : {"From" : "1024", "To" : "65535"}
+      }
+    },
+
+    "OutBoundNetworkAclEntry" : {
+      "Type" : "AWS::EC2::NetworkAclEntry",
+      "Properties" : {
+        "NetworkAclId" : {"Ref" : "NetworkAcl"},
+        "RuleNumber" : "100",
+        "Protocol" : "-1",
+        "RuleAction" : "allow",
+        "Egress" : "true",
+        "CidrBlock" : "0.0.0.0/0"
+      }
+    },
+
+    "OutBoundResponsePortsNetworkAclEntry" : {
+      "Type" : "AWS::EC2::NetworkAclEntry",
+      "Properties" : {
+        "NetworkAclId" : {"Ref" : "NetworkAcl"},
+        "RuleNumber" : "102",
+        "Protocol" : "6",
+        "RuleAction" : "allow",
+        "Egress" : "true",
+        "CidrBlock" : "0.0.0.0/0",
+        "PortRange" : {"From" : "1024", "To" : "65535"}
+      }
+    },
+
+    "SubnetNetworkAclAssociation" : {
+      "Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "Subnet" },
+        "NetworkAclId" : { "Ref" : "NetworkAcl" }
+      }
+    },
+
+	"IPAddress" : {
+      "Type" : "AWS::EC2::EIP",
+      "DependsOn" : "AttachGateway",
+      "Properties" : {
+        "Domain" : "vpc",
+        "InstanceId" : { "Ref" : "SumoLogicCWLKinesisNode" }
+      }
+    },
+
+
+	"SumoLogicInstanceSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "VpcId" : { "Ref" : "SumoLogicVPC" },
+        "GroupDescription" : "Enable SSH access via port 22",
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "FromPort" : "22",
+          "ToPort" : "22",
+          "CidrIp" : { "Ref" : "AllowedIpSource"}
+        } ]
+      }
+    },
+
+	
+	"SumoLogicCWLKinesisNode":{
+	   "Type" : "AWS::EC2::Instance",
+	   "Metadata" : {
+        "Comment" : "Install SumoLogic Kinesiss application",
+        "AWS::CloudFormation::Init" : {
+		  "configSets" : {
+            "Install" : [ "config" ]
+          },
+
+          "config" : {
+            "packages": {
+              "yum": {
+                "awslogs": []
+              }
+            },
+
+            "commands" : {
+
+              "00_CopyCredFile": {
+                "command": { "Fn::Join": [ "", ["mkdir /root/.aws ; ", "cp /home/ec2-user/.aws/credentials /root/.aws/" ] ] } , 
+				"cwd":"/root",
+				"ignoreErrors":"true"
+              },
+
+              "03_describeSubscriptionFilter": {
+                "command": { "Fn::Join" : ["", [
+                  "/usr/bin/aws logs describe-subscription-filters ",
+                      "--log-group-name \"", { "Ref": "LogGroupName" }, "\" ",
+                      "--region \"", { "Ref" : "AWS::Region" }, "\" ",
+                      "--filter-name-prefix \"cwl-cfn-es-\" "
+                ]]}
+              },
+
+              "04_deleteSubscriptionFilter": {
+                "command": { "Fn::Join" : ["", [
+                  "/usr/bin/aws logs delete-subscription-filter ",
+                      "--log-group-name \"", { "Ref": "LogGroupName" }, "\" ",
+                      "--region \"", { "Ref" : "AWS::Region" }, "\" ",
+                      "--filter-name $(aws logs describe-subscription-filters ",
+                      "--log-group-name ", { "Ref": "LogGroupName" }, " ",
+                      "--region ", { "Ref": "AWS::Region" }, " ",
+                      "--filter-name-prefix \"cwl-cfn-es-\" ",
+                      "| grep filterName | awk -F \\\" '{ print $4 };' )"
+                ]]},
+			    "ignoreErrors":"true"
+              },
+
+              "05_putSubscriptionFilter": {
+                "command": { "Fn::Join": ["", [
+                  "/usr/bin/aws logs put-subscription-filter ",
+                      "--log-group-name \"", { "Ref": "LogGroupName" }, "\" ",
+                      "--filter-name \"cwl-cfn-es-", { "Ref": "KinesisSubscriptionStream" }, "\" ",
+                      "--filter-pattern \"\" ",
+                      "--region \"", { "Ref" : "AWS::Region" }, "\" ",
+                      "--destination-arn \"", 
+                      "arn:aws:kinesis:", { "Ref": "AWS::Region" }, 
+                      ":", { "Ref": "AWS::AccountId" }, 
+                      ":stream/", { "Ref": "KinesisSubscriptionStream"} ,"\" ",
+                      "--role-arn \"", 
+                      "arn:aws:iam::", { "Ref": "AWS::AccountId" }, 
+                      ":role/", { "Ref": "SumoLogicCWL2KinesisRole" },"\""
+                 ]]}
+              } 
+			}, 
+
+            "files" : {
+              "/etc/logrotate.d/cloudwatch-logs-subscription-consumer": {
+                   "content": { "Fn::Join" : ["", [
+                  "/home/ec2-user/nohup.out\n",
+                  "{\n",
+                  "    daily\n",
+                  "    rotate 5\n",
+                  "    copytruncate\n",
+                  "    dateext\n",
+                  "    compress\n",
+                  "}\n"
+                ]]}
+              },                 
+
+              "/home/ec2-user/.aws/credentials" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[default]\n",
+				  "# http://aws.amazon.com/security-credentials\n",
+				  "aws_access_key_id = ",{"Ref": "SumoLogicCWLKinesisUserAccessKey"}, "\n",
+				  "aws_secret_access_key = ",{"Fn::GetAtt": [ "SumoLogicCWLKinesisUserAccessKey", "SecretAccessKey" ]}, "\n"]] },
+                "mode"    : "000600",
+                "owner"   : "ec2-user",
+                "group"   : "ec2-user"
+			  },
+			
+              "/home/ec2-user/SumologicConnector.properties" : {
+                "content" : { "Fn::Join" : ["", [
+                  "# Fill in your AWS Access Key ID and Secret Access Key\n",
+				  "# http://aws.amazon.com/security-credentials\n",
+				  "accessKey = ",{"Ref": "SumoLogicCWLKinesisUserAccessKey"}, "\n",
+				  "secretKey = ",{"Fn::GetAtt": [ "SumoLogicCWLKinesisUserAccessKey", "SecretAccessKey" ]}, "\n",
+                  "\n",
+
+				  "# KinesisConnector Application Settings\n",
+				  "# Since Kinesis Creates a DynamoDB table for each APP,\n",
+				  "# each appName must be unique for different kinesisInputStreams and connectorDestinations\n",
+				  "appName = ",{"Fn::Join": ["", [{"Ref": "KCLLeasesTable"}]]},"\n",
+                  "\n",
+			
+			     "# By specifying the region name, the connector will connect from the Amazon Kinesis stream in this region\n",
+				 "# unless the endpoint for Amazon Kinesis is explicitly specified. The Amazon DynamoDB lease table and Amazon CloudWatch\n",
+				 "# metrics for connector will be created in this region. All resources in outgoing destination will not be affected by this region name.\n",
+				 "regionName = ",{"Ref": "AWS::Region"},"\n",
+				 "retryLimit = 3\n",
+
+				 "# Amazon Kinesis parameters for KinesisConnector\n\n",
+
+				 "# Uncomment the following property if you would like to explicitly configure the Amazon Kinesis endpoint.\n",
+				 "# This property will configure the connector's Amazon Kinesis client to read from this specific endpoint,\n",
+				 "# overwriting the regionName property for ONLY the Amazon Kinesis client. The lease table and Amazon CloudWatch\n",
+				 "# metrics will still use the regionName property.\n",
+				 "# kinesisEndpoint = https://kinesis.us-west-2.amazonaws.com\n\n",
+
+				 "# Kinesis Stream where data will be grabbed from\n",
+				 "kinesisInputStream = ",{"Ref": "KinesisSubscriptionStream"},"\n\n",
+
+				 "# Optional Amazon Kinesis parameters for automatically creating the stream\n",
+				 "createKinesisInputStream = false\n",
+				 "createKinesisOutputStream = false\n",
+				 "kinesisInputStreamShardCount = 2\n",
+				 "kinesisOutputStreamShardCount = 2\n\n",
+
+				 "# Transformer class that will be used to handle records\n",
+				 "transformerClass = CloudWatchMessageModelSumologicTransformer\n\n",
+
+				 "# Specifies the input file from which the StreamSource will read records\n",
+				 "createStreamSource = false\n",
+				 "inputStreamFile = users.txt\n\n",
+
+				 "# Connector name to be appendend to the UserAgent\n",
+				 "connectorDestination = sumologic\n\n",
+
+				 "# Sumologic HTTP Collector URL\n",
+				 "sumologicUrl = ",{"Ref": "SumoLogicHttpCollectorURL"},"\n"
+                ]]},
+                "mode"    : "000600",
+                "owner"   : "ec2-user",
+                "group"   : "ec2-user"
+              },
+
+              "/etc/cfn/cfn-hup.conf" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[main]\n",
+                  "stack=", { "Ref" : "AWS::StackId" }, "\n",
+                  "region=", { "Ref" : "AWS::Region" }, "\n"
+                ]]},
+                "mode"    : "000400",
+                "owner"   : "root",
+                "group"   : "root"
+              },
+
+              "/etc/awslogs/awscli.conf": {
+                   "content": { "Fn::Join" : ["", [
+                  "[plugins]\n",
+                  "cwlogs = cwlogs\n",
+                  "[default]\n",
+                  "region = ", { "Ref": "AWS::Region"} ,"\n"
+                ]]}
+              },
+
+              "/etc/awslogs/awslogs.conf": {
+                "Fn::If": [ "CreateCWLForStack",
+                  {
+                    "content": { "Fn::Join": [ "", [
+                       "[general]\n",
+                       "state_file= /var/awslogs/state/agent-state\n",
+
+                      "[/var/log/cfn-init.log]\n",
+                      "file = /var/log/cfn-init.log\n",
+                      "log_group_name = ", { "Ref": "CloudFormationLogs" }, "\n",
+                      "log_stream_name = {instance_id}\n",
+
+                      "[/var/log/cloud-init-output.log]\n",
+                      "file = /var/log/cloud-init-output.log\n",
+                      "log_group_name = ", { "Ref": "CWEC2Logs" }, "\n",
+                      "log_stream_name = {instance_id}\n",
+
+                      "[/var/log/cloud-init.log]\n",
+                      "file = /var/log/cloud-init.log\n",
+                      "log_group_name = ", { "Ref": "CWEC2Logs" }, "\n",
+                      "log_stream_name = {instance_id}\n",
+
+                      "[cloudwatch-logs-subscription-consumer]\n",
+                      "file = /home/ec2-user/nohup.out\n",
+                      "log_group_name = ", { "Ref": "KCLLogs" }, "\n",
+                      "log_stream_name = {instance_id}\n"
+                   ]]},
+                   "mode": "000444",
+                   "owner": "root",
+                   "group": "root"
+                   },
+                 {
+                   "content": "# Find original defaults in .bak file"
+                 }
+                ]
+              },
+
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                "content": { "Fn::Join" : ["", [
+                  "[cfn-auto-reloader-hook]\n",
+                  "triggers=post.update\n",
+                  "path=Resources.SumoLogicCWLKinesisNode.Metadata.AWS::CloudFormation::Init\n",
+                  "action=/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SumoLogicCWLKinesisNode",
+                                                   " --region     ", { "Ref" : "AWS::Region" }, "\n",
+                  "runas=root\n"
+                ]]}
+              }
+
+            }, 
+
+            "services": {
+              "sysvinit": {
+                "awslogs": {
+                  "Fn::If": [
+                    "CreateCWLForStack",
+                    {
+                      "enabled" : "true", 
+                         "ensureRunning" : "true",
+                        "files" : [ "/etc/awslogs/awslogs.conf" ]
+                    },
+                    "AWS::NoValue"
+                  ]
+                }
+              }
+            }
+          }
+		}
+	  }, 
+
+		
+	  "Properties" : {
+		  "DisableApiTermination" : "false",
+		  "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region"},  { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" :"InstanceType" } , "Arch" ]}]},
+		  "InstanceInitiatedShutdownBehavior" : "stop",
+		  "SecurityGroupIds" : [ { "Ref" : "SumoLogicInstanceSecurityGroup" } ],
+		  "SubnetId" : { "Ref" : "Subnet" },
+		  "InstanceType" : { "Ref" : "InstanceType" },
+		  "KeyName" : { "Ref" : "KeyName"},
+          "IamInstanceProfile" : { "Ref" : "SumoLogicInstanceProfile" },
+		  "Monitoring" : "false",
+		  "Tags" : [ {"Key": "Deployment", "Value" : "Kinesis"}, {"Key":"Name","Value":"SumoLogic_Kinesis"} ], 
+		  "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+				 "#!/bin/bash -xe\n",
+
+			     "# Install the files and packages from the metadata\n ",
+				 "yum update -y aws-cfn-bootstrap\n",
+          		 "yum update -y aws-cli\n",
+
+				 "# Download files \n",
+				 "cd /home/ec2-user","\n",
+				 "wget https://s3.amazonaws.com/", { "Fn::FindInMap" : [ "Constants", "DownloadPath", "Value" ]}, "/", { "Fn::FindInMap" : [ "Constants", "DownloadJarFile", "Value" ]}, "\n",
+				 "chown ec2-user ",{ "Fn::FindInMap" : [ "Constants", "DownloadJarFile", "Value" ]}, "\n",
+				 "chgrp ec2-user ",{ "Fn::FindInMap" : [ "Constants", "DownloadJarFile", "Value" ]}, "\n",
+				 "wget https://s3.amazonaws.com/", { "Fn::FindInMap" : [ "Constants", "DownloadPath", "Value" ]}, "/", { "Fn::FindInMap" : [ "Constants", "DownloadWrapperScript", "Value" ]}, "\n",
+				 "chown ec2-user ",{ "Fn::FindInMap" : [ "Constants", "DownloadWrapperScript", "Value" ]}, "\n",
+				 "chgrp ec2-user ",{ "Fn::FindInMap" : [ "Constants", "DownloadWrapperScript", "Value" ]}, "\n",
+				 "chmod 755 ",{ "Fn::FindInMap" : [ "Constants", "DownloadWrapperScript", "Value" ]}, "\n",
+
+				 "wget https://s3.amazonaws.com/", { "Fn::FindInMap" : [ "Constants", "DownloadPath", "Value" ]}, "/", { "Fn::FindInMap" : [ "Constants", "DownloadLog4JPropertyFile", "Value" ]}, "\n",
+				 "chown ec2-user ",{ "Fn::FindInMap" : [ "Constants", "DownloadLog4JPropertyFile", "Value" ]}, "\n",
+				 "chgrp ec2-user ",{ "Fn::FindInMap" : [ "Constants", "DownloadLog4JPropertyFile", "Value" ]}, "\n",
+
+          		 "# Config\n",
+				 "/opt/aws/bin/cfn-init -v ",
+				 "         --stack ", { "Ref" : "AWS::StackName" },
+				 "         --resource SumoLogicCWLKinesisNode",
+				 "         --configsets Install ",
+				 "         --region ", { "Ref" : "AWS::Region" }, "\n", 
+
+				 "/opt/aws/bin/cfn-signal -e $? ",
+                       "         --stack ", { "Ref" : "AWS::StackName" },
+                       "         --resource SumoLogicCWLKinesisNode",
+                       "         --region ", { "Ref" : "AWS::Region" }, "\n"
+
+			]]}}
+
+	  } 
+	},
+	
+	"SumoLogicCWLKinesisUser" : {
+	   "Type": "AWS::IAM::User",
+	   "Properties": {
+		  "Path": "/"
+	   }
+	},
+
+	"SumoLogicCWLKinesisUserAccessKey" : {
+	   "Type" : "AWS::IAM::AccessKey",
+	   "Properties" : {
+		  "UserName" : { "Ref" : "SumoLogicCWLKinesisUser" },
+		  "Status" : "Active"
+	   }
+	}, 
+
+
+    "SumoLogicCWL2KinesisRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument" : {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": { 
+                "Service": { "Fn::Join": ["", ["logs.", { "Ref": "AWS::Region" } ,".amazonaws.com" ]]}
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        }
+      }  
+    },
+
+    "SumoLogicCWLKinesisPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "SumoLogicCWLKinesisPolicy",
+        "Roles": [ { "Ref": "SumoLogicCWL2KinesisRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "kinesis:PutRecord",
+              "Resource": { "Fn::Join" : ["", ["arn:aws:kinesis:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId" }, ":stream/", { "Ref": "KinesisSubscriptionStream"} ]] }
+            },
+            {
+              "Effect": "Allow",
+              "Action": "iam:PassRole",
+              "Resource": { "Fn::Join" : ["", ["arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "SumoLogicCWL2KinesisRole" } ]] }
+            }
+          ]
+        }
+      }
+    },
+
+    "SumoLogicNodeRole" : {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument" : {
+          "Version" : "2012-10-17",
+          "Statement" : [ {
+            "Effect" : "Allow",
+            "Principal" : {
+              "Service" : [ "ec2.amazonaws.com" ]
+            },
+            "Action" : [ "sts:AssumeRole" ]
+          } ]
+        },
+        "Path" : "/"
+      }
+    },
+
+    "SumoLogicCWLKinesisNodePolicies" : {
+      "Type" : "AWS::IAM::Policy",
+      "Properties" : {
+        "PolicyName" : "sumologic-cwl-kinesis-node-policy",
+        "PolicyDocument": {
+          "Version" : "2012-10-17",
+          "Statement": [ 
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:*"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "iam:PassRole",
+              "Resource": { "Fn::Join" : ["", ["arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "SumoLogicCWL2KinesisRole" } ]] }
+            }
+          ]
+        },
+        "Roles": [ { "Ref": "SumoLogicNodeRole" } ]
+      }
+    },
+
+    "SumoLogicCWLKinesisUserPolicies" : {
+      "Type" : "AWS::IAM::Policy",
+      "Properties" : {
+        "PolicyName" : "sumologic-cwl-kinesis-user-policy",
+        "PolicyDocument": {
+          "Version" : "2012-10-17",
+          "Statement": [ {
+              "Effect": "Allow",
+              "Action": "dynamodb:*",
+              "Resource": { "Fn::Join": ["", ["arn:aws:dynamodb:",{ "Ref": "AWS::Region" },":", {"Ref": "AWS::AccountId"},":table/", { "Ref": "KCLLeasesTable" } ]]}
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "kinesis:Get*",
+                "kinesis:List*",
+                "kinesis:Describe*"
+              ],
+
+              "Resource": { "Fn::Join": ["", ["arn:aws:kinesis:", { "Ref": "AWS::Region" }, ":",{"Ref": "AWS::AccountId"},":stream/", { "Ref": "KinesisSubscriptionStream" }]]}
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:*"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "iam:PassRole",
+              "Resource": { "Fn::Join" : ["", ["arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "SumoLogicCWL2KinesisRole" } ]] }
+            }
+          ]
+        },
+        "Users": [ { "Ref": "SumoLogicCWLKinesisUser" } ]
+      }
+    },
+
+    "SumoLogicInstanceProfile" : {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [ { "Ref": "SumoLogicNodeRole" } ]
+      }
+    },
+
+    "CWEC2Logs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "CreateCWLForStack"
+    },
+
+    "CloudFormationLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "CreateCWLForStack"
+    },
+
+    "KCLLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "CreateCWLForStack"
+    }
+  }, 
+
+  "Outputs" : {
+    "InstanceId" : {
+      "Description" : "InstanceId of the newly created SumoLogic EC2 VPC instance",
+      "Value" : { "Ref" : "SumoLogicCWLKinesisNode" }
+    },
+    "AZ" : {
+      "Description" : "Availability Zone of the newly created SumoLogic EC2 instance",
+      "Value" : { "Fn::GetAtt" : [ "SumoLogicCWLKinesisNode", "AvailabilityZone" ] }
+    },
+
+    "PublicDNS" : {
+      "Description" : "Public DNSName of the newly created EC2 SumoLogic instance",
+      "Value" : { "Fn::GetAtt" : [ "SumoLogicCWLKinesisNode", "PublicDnsName" ] }
+    },
+
+    "PublicIP" : {
+      "Description" : "Public IP address of the newly created EC2 SumoLogic instance",
+      "Value" : { "Fn::GetAtt" : [ "SumoLogicCWLKinesisNode", "PublicIp" ] }
+    }, 
+
+    "CWLtoKinesisRoleArn" : {
+      "Description" : "Arn of CloudWatchLogs to Kinesis Role, if need to use manually ",
+      "Value" : {"Fn::Join" : ["", [ "arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/",{ "Ref" :  "SumoLogicCWL2KinesisRole" } ]]}
+    },
+
+    "KinesisStream" : {
+      "Description" : "Kinesis Stream for VPC flow logs ",
+      "Value" : {"Fn::Join" : ["", [ "arn:aws:kinesis:", {"Ref":"AWS::Region"},":",{ "Ref": "AWS::AccountId" }, ":stream/",{ "Ref" :  "KinesisSubscriptionStream" } ]]}
+    },
+
+    "DynamoDB" : {
+      "Description" : "DynamoDB Table for VPC flow logs ",
+      "Value" : { "Ref" :  "KCLLeasesTable" }
+    },
+
+	"SumoLogicCWLKinesisUserAccessKeyValue" : {
+	   "Value" : { "Ref" : "SumoLogicCWLKinesisUserAccessKey"}
+	},
+
+	"SumoLogicCWLKinesisUserSecretKeyValue" : {
+	   "Value" : {
+		  "Fn::GetAtt" : [ "SumoLogicCWLKinesisUserAccessKey", "SecretAccessKey" ]
+	   }
+	}
+ }
+}
