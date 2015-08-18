@@ -84,7 +84,7 @@
       "Description": "This is the application name in Kinesis Connector's context. No two live/active stacks should be using the same application name.",
       "Type": "String",
       "Default" : "SumoLogic-VPC-FlowLog-Connector"
-    },
+	},
 
     "KinesisShards": {
       "Description": "Number of shards to create for the Kinesis subscription stream",
