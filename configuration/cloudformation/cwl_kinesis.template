@@ -67,14 +67,8 @@
       "ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
     },
 
-    "ClusterSize" : {
-      "Description" : "The number of SumoLogic VPC-Kinesis nodes",
-      "Type" : "Number",
-      "Default" : "1"
-    },
-
     "LogGroupName": {
-      "Description": "The CloudWatch Logs log group to use as the source for the subscription that feeds the SumoLogic cluster",
+      "Description": "The CloudWatch log group containing the VPC flow logs",
       "Type": "String",
       "Default": ""
     },
@@ -86,16 +80,10 @@
       "AllowedValues" : ["true", "false"]
     },
 
-    "LogFormat" : {
-      "Description": "Choose the format that best describes the type of logs in the selected log group",
+    "KinesisConnectorAppName" : {
+      "Description": "This is the application name in Kinesis Connector's context. No two live/active stacks should be using the same application name.",
       "Type": "String",
-      "Default" : "Amazon VPC Flow Logs",
-      "AllowedValues" : ["Amazon VPC Flow Logs", "AWS Lambda", "AWS CloudTrail", "Custom"]
-    },
-
-    "SubscriptionFilterPattern" : {
-      "Description": "Optional filter pattern for custom log formats - Use this only if LogFormat is set to Custom",
-      "Type": "String"
+      "Default" : "SumoLogic-VPC-FlowLog-Connector"
     },
 
     "KinesisShards": {
@@ -173,29 +161,6 @@
   },
 
   "Resources" : {
-
-      "KCLLeasesTable": {
-         "Type": "AWS::DynamoDB::Table",
-         "Properties": {
-        "TableName": { "Ref": "AWS::StackName" },
-          "ProvisionedThroughput" : {
-          "ReadCapacityUnits" : "10",
-          "WriteCapacityUnits" : "10"
-        },
-        "AttributeDefinitions" : [
-          {
-            "AttributeName" : "leaseKey",
-            "AttributeType" : "S"   
-          }
-        ],
-        "KeySchema" : [
-          {
-            "AttributeName" : "leaseKey",
-            "KeyType" : "HASH"
-          }
-        ]
-      }
-    },
 
     "KinesisSubscriptionStream": {
       "Type": "AWS::Kinesis::Stream",
@@ -416,7 +381,11 @@
                       "arn:aws:iam::", { "Ref": "AWS::AccountId" }, 
                       ":role/", { "Ref": "SumoLogicCWL2KinesisRole" },"\""
                  ]]}
-              } 
+              },
+
+              "06_CWLStateDir" : {
+                "command" : "mkdir -p /var/awslogs/state"
+              }
 			}, 
 
             "files" : {
@@ -455,7 +424,7 @@
 				  "# KinesisConnector Application Settings\n",
 				  "# Since Kinesis Creates a DynamoDB table for each APP,\n",
 				  "# each appName must be unique for different kinesisInputStreams and connectorDestinations\n",
-				  "appName = ",{"Fn::Join": ["", [{"Ref": "KCLLeasesTable"}]]},"\n",
+				  "appName = ",{"Fn::Join": ["", [{"Ref": "KinesisConnectorAppName"}]]},"\n",
                   "\n",
 			
 			     "# By specifying the region name, the connector will connect from the Amazon Kinesis stream in this region\n",
@@ -744,7 +713,7 @@
           "Statement": [ {
               "Effect": "Allow",
               "Action": "dynamodb:*",
-              "Resource": { "Fn::Join": ["", ["arn:aws:dynamodb:",{ "Ref": "AWS::Region" },":", {"Ref": "AWS::AccountId"},":table/", { "Ref": "KCLLeasesTable" } ]]}
+              "Resource": { "Fn::Join": ["", ["arn:aws:dynamodb:",{ "Ref": "AWS::Region" },":", {"Ref": "AWS::AccountId"},":table/", { "Ref": "KinesisConnectorAppName" } ]]}
             },
             {
               "Effect": "Allow",
@@ -826,11 +795,6 @@
     "KinesisStream" : {
       "Description" : "Kinesis Stream for VPC flow logs ",
       "Value" : {"Fn::Join" : ["", [ "arn:aws:kinesis:", {"Ref":"AWS::Region"},":",{ "Ref": "AWS::AccountId" }, ":stream/",{ "Ref" :  "KinesisSubscriptionStream" } ]]}
-    },
-
-    "DynamoDB" : {
-      "Description" : "DynamoDB Table for VPC flow logs ",
-      "Value" : { "Ref" :  "KCLLeasesTable" }
     },
 
 	"SumoLogicCWLKinesisUserAccessKeyValue" : {
