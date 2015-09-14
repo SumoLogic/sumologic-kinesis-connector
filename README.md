@@ -18,6 +18,16 @@ Incoming records from one (or many) Shards of an AWS Kinesis Stream will be read
  + **Buffered**: A custom buffer may be used to define thresholds that, when crossed, will flush all records into the emitter.
  + **Emitted**: The records will get send to the Sumologic Collector.
 
+## Installation
+
+The library can be added to your project using Maven Central just by adding the following dependency to a POM file:
+
+<dependency>
+  <groupId>com.sumologic</groupId>
+  <artifactId>kinesis-sumologic-connector</artifactId>
+  <version>0.1</version>
+</dependency>
+
 ## Configuration
 
 A sample properties file is provided, which should be modified to use your AWS Accounts (**accessKey** and **secretKey**), Kinesis Stream(**kinesisInputStream**), Sumologic HTTP source (**sumologicUrl**), App Name (**appName**) and Transformer class used (**transformerClass**).
