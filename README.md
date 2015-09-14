@@ -22,11 +22,13 @@ Incoming records from one (or many) Shards of an AWS Kinesis Stream will be read
 
 The library can be added to your project using Maven Central just by adding the following dependency to a POM file:
 
+```
 <dependency>
   <groupId>com.sumologic</groupId>
   <artifactId>kinesis-sumologic-connector</artifactId>
   <version>0.1</version>
 </dependency>
+```
 
 ## Configuration
 
