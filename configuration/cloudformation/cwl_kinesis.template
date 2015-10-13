@@ -432,6 +432,9 @@
 				 "# metrics for connector will be created in this region. All resources in outgoing destination will not be affected by this region name.\n",
 				 "regionName = ",{"Ref": "AWS::Region"},"\n",
 				 "retryLimit = 3\n",
+				 "backoffInterval = 50000\n",
+				 "bufferRecordCountLimit = 100\n",
+				 "bufferMillisecondsLimit = 10000\n",
 
 				 "# Amazon Kinesis parameters for KinesisConnector\n\n",
 
