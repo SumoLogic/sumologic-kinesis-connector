@@ -4,7 +4,7 @@
 
   <groupId>com.sumologic</groupId>
   <artifactId>kinesis-sumologic-connector</artifactId>
-  <version>0.1</version>
+  <version>0.2</version>
   <packaging>jar</packaging>
 
   <name>kinesis-sumologic-connector</name>
@@ -12,19 +12,19 @@
   <url>http://maven.apache.org</url>
   
   <licenses>
-	  <license>
-	    <name>Apache License, Version 2.0</name>
-	    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-	    <distribution>repo</distribution>
-	  </license>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
   </licenses>
   
   <scm>
-	<url>https://github.com/SumoLogic/sumologic-kinesis-connector</url>
-	<connection>scm:git:git://github.com/SumoLogic/sumologic-kinesis-connector.git</connection>
-	<developerConnection>scm:git:git@github.com/SumoLogic/sumologic-kinesis-connector.git</developerConnection>
+  <url>https://github.com/SumoLogic/sumologic-kinesis-connector</url>
+  <connection>scm:git:git://github.com/SumoLogic/sumologic-kinesis-connector.git</connection>
+  <developerConnection>scm:git:git@github.com/SumoLogic/sumologic-kinesis-connector.git</developerConnection>
   </scm>
-  
+
   <developers>
     <developer>
       <id>jpdiazvaz</id>
@@ -32,6 +32,17 @@
       <email>jpdiazvaz@mcplusa.com</email>
       <organization>MC+A</organization>
       <organizationUrl>http://www.mcplusa.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+
+    <developer>
+      <id>duchatran</id>
+      <name>Duc Ha</name>
+      <email>duc@sumologic.com</email>
+      <organization>Sumo Logic</organization>
+      <organizationUrl>https://www.sumologic.com</organizationUrl>
       <roles>
         <role>developer</role>
       </roles>
@@ -45,111 +56,115 @@
   </properties>
   
   <distributionManagement>
-  	<snapshotRepository>
-    	<id>ossrh</id>
-    	<url>https://oss.sonatype.org/content/repositories/snapshots</url>
- 	</snapshotRepository>
-	<repository>
-		<id>ossrh</id>
-		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-	</repository>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  </snapshotRepository>
+  <repository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+  </repository>
   </distributionManagement>
   
   <build>
-  <resources>
-	<resource>
-		<directory>src/main/resources</directory>
-	</resource>
-  </resources>
-	<plugins>
-	<!-- Plugin needed for deployment for sonatype -->
-		<plugin>
-	      <groupId>org.sonatype.plugins</groupId>
-	      <artifactId>nexus-staging-maven-plugin</artifactId>
-	      <version>1.6.3</version>
-	      <extensions>true</extensions>
-	      <configuration>
-	        <serverId>ossrh</serverId>
-	        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-	        <autoReleaseAfterClose>true</autoReleaseAfterClose>
-	      </configuration>
-	    </plugin>
-	    
-	<!-- Plugins for generating sources and javadoc -->
-	    <plugin>
-	      <groupId>org.apache.maven.plugins</groupId>
-	      <artifactId>maven-source-plugin</artifactId>
-	      <version>2.2.1</version>
-	      <executions>
-	        <execution>
-	          <id>attach-sources</id>
-	          <goals>
-	            <goal>jar-no-fork</goal>
-	          </goals>
-	        </execution>
-	      </executions>
-	    </plugin>
-	    <plugin>
-	      <groupId>org.apache.maven.plugins</groupId>
-	      <artifactId>maven-javadoc-plugin</artifactId>
-	      <version>2.9.1</version>
-	      <executions>
-	        <execution>
-	          <id>attach-javadocs</id>
-	          <goals>
-	            <goal>jar</goal>
-	          </goals>
-	        </execution>
-	      </executions>
-	    </plugin>
-	    
-	    <!-- Plugin for GPG credentials -->
-	    <plugin>
-	      <groupId>org.apache.maven.plugins</groupId>
-	      <artifactId>maven-gpg-plugin</artifactId>
-	      <version>1.5</version>
-	      <executions>
-	        <execution>
-	          <id>sign-artifacts</id>
-	          <phase>verify</phase>
-	          <goals>
-	            <goal>sign</goal>
-	          </goals>
-	        </execution>
-	      </executions>
-	    </plugin>
-	
-	<!-- Plugin for generating the jar -->
-		<plugin>
-			<artifactId>maven-assembly-plugin</artifactId>
-			<configuration>
-				<archive>
-					<manifest>
-						<mainClass>com.sumologic.client.SumologicExecutor</mainClass>
-					</manifest>
-			        <manifestEntries>
-			          <Class-Path>.</Class-Path> <!-- Needed for the properties file -->
-			        </manifestEntries>
-				</archive>
-				<appendAssemblyId>false</appendAssemblyId> <!-- remove the "jar-with-dependencies" suffix -->
-				<descriptorRefs>
-					<descriptorRef>jar-with-dependencies</descriptorRef>
-				</descriptorRefs>
-			</configuration>
-			
-			<executions>
-				<execution>
-					<id>make-assembly</id> <!-- this is used for inheritance merges -->
-					<phase>package</phase> <!-- bind to the packaging phase -->
-					<goals>
-						<goal>single</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
-	</plugins>
-	<pluginManagement>
-	</pluginManagement>
+    <resources>
+    	<resource>
+    		<directory>src/main/resources</directory>
+    	</resource>
+    </resources>
+
+  	<plugins>
+      <!-- Plugin needed for deployment for sonatype -->
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.3</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+
+      <!-- Plugins for generating sources and javadoc -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Plugin for GPG credentials -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Plugin for generating the jar -->
+  		<plugin>
+  			<artifactId>maven-assembly-plugin</artifactId>
+  			<configuration>
+  				<archive>
+  					<manifest>
+  						<mainClass>com.sumologic.client.SumologicExecutor</mainClass>
+  					</manifest>
+  			        <manifestEntries>
+  			          <Class-Path>.</Class-Path> <!-- Needed for the properties file -->
+  			        </manifestEntries>
+  				</archive>
+  				<appendAssemblyId>false</appendAssemblyId> <!-- remove the "jar-with-dependencies" suffix -->
+  				<descriptorRefs>
+  					<descriptorRef>jar-with-dependencies</descriptorRef>
+  				</descriptorRefs>
+  			</configuration>
+  			
+  			<executions>
+  				<execution>
+  					<id>make-assembly</id> <!-- this is used for inheritance merges -->
+  					<phase>package</phase> <!-- bind to the packaging phase -->
+  					<goals>
+  						<goal>single</goal>
+  					</goals>
+  				</execution>
+  			</executions>
+  		</plugin>
+
+  	</plugins>
+
+  	<pluginManagement>
+  	</pluginManagement>
+
   </build>  
 
   <dependencies>
