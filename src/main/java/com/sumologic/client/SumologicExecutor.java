@@ -38,7 +38,6 @@ public class SumologicExecutor extends
 		ArrayList<Thread> executorThreads = new ArrayList<Thread>();
 
 		for (String arg : args) {
-			System.out.println("arg:" + arg);
 			if (arg.endsWith(".properties")) {
 				configFiles.add(arg);
 			}
