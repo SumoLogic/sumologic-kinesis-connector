@@ -118,7 +118,9 @@
                classpathref="sumologic.classpath"
                includes="com/sumologic/kinesis/*.java, com/sumologic/kinesis/utils/*.java,
                          com/sumologic/client/*.java, com/sumologic/client/implementations/*.java"/>
-        <java classname="com.sumologic.client.SumologicExecutor" classpathref="sumologic.classpath" fork="true" />
+		<java classname="com.sumologic.client.SumologicExecutor" classpathref="sumologic.classpath" fork="true">
+			<arg line="${args}"/>
+		</java>
 	</target>
 
     <target name="run">
