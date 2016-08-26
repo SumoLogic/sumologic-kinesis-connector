@@ -32,7 +32,11 @@ The library can be added to your project using Maven Central just by adding the 
 
 ## Configuration
 
-A sample properties file is provided, which should be modified to use your AWS Accounts (**accessKey** and **secretKey**), Kinesis Stream(**kinesisInputStream**), Sumologic HTTP source (**sumologicUrl**), App Name (**appName**) and Transformer class used (**transformerClass**).
+A sample properties file is provided, which should be modified to use your AWS Accounts (**accessKey** and **secretKey**), Kinesis Stream(**kinesisInputStream**), Sumologic HTTP source (**sumologicUrl**), App Name (**appName**) and Transformer class used (**transformerClass**). Reading from multiple kinesis streams is also supported (see PR14) by specifying multiple config files, launching multiple SumologicExecutors like so:
+```
+ant run -Dargs='app1.properties app2.properties'
+```
+The SumologicConnector.properties file is still required to be present in the working directory, as it's hardcoded into the application as the file AWS credentials are read from. If no .properties files are passed as arguments, SumologicConnector.properties is assumed as the only SumologicExecutor
 
 ## Running the Connector
 
