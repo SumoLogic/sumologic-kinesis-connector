@@ -58,6 +58,8 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
             throw new IllegalStateException(msg, e);
         }
         this.config = new KinesisConnectorForSumologicConfiguration(properties, getAWSCredentialsProvider());
+        
+        LOG.info("Using " + configFile);
 
         // Send sample data to AWS Kinesis if specified in the properties file
         setupInputStream();
