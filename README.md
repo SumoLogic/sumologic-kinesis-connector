@@ -24,9 +24,9 @@ The appender can be added to your project using Maven Central by adding the foll
 
 ```
 <dependency>
-    <groupId>com.sumologic.plugins.log4j</groupId>
-    <artifactId>sumo-log4j-appender</artifactId>
-    <version>2.4</version>
+  <groupId>com.sumologic</groupId>
+  <artifactId>kinesis-sumologic-connector</artifactId>
+  <version>0.1</version>
 </dependency>
 ```
 
