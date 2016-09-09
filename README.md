@@ -20,13 +20,13 @@ Incoming records from one (or many) Shards of an AWS Kinesis Stream will be read
 
 ## Installation
 
-The library can be added to your project using Maven Central just by adding the following dependency to a POM file:
+The appender can be added to your project using Maven Central by adding the following dependency to a POM file:
 
 ```
 <dependency>
-  <groupId>com.sumologic</groupId>
-  <artifactId>kinesis-sumologic-connector</artifactId>
-  <version>0.1</version>
+    <groupId>com.sumologic.plugins.log4j</groupId>
+    <artifactId>sumo-log4j-appender</artifactId>
+    <version>2.4</version>
 </dependency>
 ```
 
