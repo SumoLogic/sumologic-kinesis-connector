@@ -3,9 +3,9 @@ package com.sumologic.client;
 import java.io.IOException;
 
 import com.amazonaws.services.kinesis.model.Record;
-import com.amazonaws.util.json.JSONArray;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import com.sumologic.client.implementations.SumologicTransformer;
 import com.sumologic.client.model.CloudWatchLogsMessageModel;
 import com.sumologic.client.model.LogEvent;
