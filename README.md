@@ -4,8 +4,8 @@ The **Kinesis-Sumologic Connector** is a Java connector that acts as a pipeline 
 
 ## Requirements
 
- + **Java JDK 1.7**: This connector has been built with Java version 1.7.
- + **Ant**: A build.xml script has been provided to build the connector with Ant.
+ + **Java JDK 1.8**: This connector has been built with Java version 1.8.
+ + **Maven**: A pom.xml file has been provided to build the connector with Maven.
  + **AWS Kinesis Account**: An Amazon AWS Kinesis account to use as a source of data.
  + **Sumologic Account**: A Sumologic account to use as a destination.
 
@@ -26,7 +26,7 @@ The appender can be added to your project using Maven Central by adding the foll
 <dependency>
   <groupId>com.sumologic</groupId>
   <artifactId>kinesis-sumologic-connector</artifactId>
-  <version>0.1</version>
+  <version>0.2</version>
 </dependency>
 ```
 
@@ -34,15 +34,27 @@ The appender can be added to your project using Maven Central by adding the foll
 
 A sample properties file is provided, which should be modified to use your AWS Accounts (**accessKey** and **secretKey**), Kinesis Stream(**kinesisInputStream**), Sumologic HTTP source (**sumologicUrl**), App Name (**appName**) and Transformer class used (**transformerClass**). Reading from multiple kinesis streams is also supported (see PR14) by specifying multiple config files, launching multiple SumologicExecutors like so:
 ```
-ant run -Dargs='app1.properties app2.properties'
+mvn clean compile exec:java -Dexec.args="app1.properties app2.properties"
 ```
 The SumologicConnector.properties file is still required to be present in the working directory, as it's hardcoded into the application as the file AWS credentials are read from. If no .properties files are passed as arguments, SumologicConnector.properties is assumed as the only SumologicExecutor
 
-## Running the Connector
+## Running the Connector with Maven
 
-After modifying the .properties file, run the connector by executing the ant build script 
-To download the needed dependencies execute **ant setup**
-To build and execute the connector execute **ant run**
+After modifying the .properties file, run the connector using Maven
+```
+mvn clean compile exec:java -Dargs="SumologicConnector.properties"
+```
+
+## Building the JAR
+After modifying the .properties file, build the JAR file using Maven
+```
+mvn clean install
+```
+
+## Running the JAR
+```
+java -jar target/kinesis-sumologic-connector-0.2.jar SumologicConnector.properties
+```
 
 
 ## Related sources
@@ -51,9 +63,9 @@ To build and execute the connector execute **ant run**
 
 [Sumologic](https://www.sumologic.com/)
 
-[Java JDK 1.7](http://www.oracle.com/technetwork/java/javase/overview/index.html)
+[Open JDK 8](http://openjdk.java.net/projects/jdk8)
 
-[Ant](http://ant.apache.org/)
+[Maven](http://maven.apache.org/)
 
 [AWS Kinesis Account](http://aws.amazon.com/account/)
 

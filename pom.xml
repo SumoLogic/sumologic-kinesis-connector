@@ -1,16 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>com.sumologic</groupId>
   <artifactId>kinesis-sumologic-connector</artifactId>
   <version>0.2</version>
   <packaging>jar</packaging>
-
   <name>kinesis-sumologic-connector</name>
   <description>Connector for feeding Amazon Kinesis data into Sumologic</description>
   <url>http://maven.apache.org</url>
-  
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -18,13 +14,11 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  
   <scm>
-  <url>https://github.com/SumoLogic/sumologic-kinesis-connector</url>
-  <connection>scm:git:git://github.com/SumoLogic/sumologic-kinesis-connector.git</connection>
-  <developerConnection>scm:git:git@github.com/SumoLogic/sumologic-kinesis-connector.git</developerConnection>
+    <url>https://github.com/SumoLogic/sumologic-kinesis-connector</url>
+    <connection>scm:git:git://github.com/SumoLogic/sumologic-kinesis-connector.git</connection>
+    <developerConnection>scm:git:git@github.com/SumoLogic/sumologic-kinesis-connector.git</developerConnection>
   </scm>
-
   <developers>
     <developer>
       <id>jpdiazvaz</id>
@@ -36,7 +30,6 @@
         <role>developer</role>
       </roles>
     </developer>
-
     <developer>
       <id>duchatran</id>
       <name>Duc Ha</name>
@@ -48,32 +41,28 @@
       </roles>
     </developer>
   </developers>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-  
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-  </snapshotRepository>
-  <repository>
-    <id>ossrh</id>
-    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-  </repository>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
   </distributionManagement>
-  
   <build>
     <resources>
-    	<resource>
-    		<directory>src/main/resources</directory>
-    	</resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
     </resources>
-
-  	<plugins>
+    <plugins>
       <!-- Plugin needed for deployment for sonatype -->
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
@@ -86,9 +75,8 @@
           <autoReleaseAfterClose>true</autoReleaseAfterClose>
         </configuration>
       </plugin>
-
       <!-- Plugins for generating sources and javadoc -->
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>2.2.1</version>
@@ -113,10 +101,9 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
+      </plugin>-->
       <!-- Plugin for GPG credentials -->
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
         <version>1.5</version>
@@ -129,45 +116,354 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
+      </plugin>-->
       <!-- Plugin for generating the jar -->
-  		<plugin>
-  			<artifactId>maven-assembly-plugin</artifactId>
-  			<configuration>
-  				<archive>
-  					<manifest>
-  						<mainClass>com.sumologic.client.SumologicExecutor</mainClass>
-  					</manifest>
-  			        <manifestEntries>
-  			          <Class-Path>.</Class-Path> <!-- Needed for the properties file -->
-  			        </manifestEntries>
-  				</archive>
-  				<appendAssemblyId>false</appendAssemblyId> <!-- remove the "jar-with-dependencies" suffix -->
-  				<descriptorRefs>
-  					<descriptorRef>jar-with-dependencies</descriptorRef>
-  				</descriptorRefs>
-  			</configuration>
-  			
-  			<executions>
-  				<execution>
-  					<id>make-assembly</id> <!-- this is used for inheritance merges -->
-  					<phase>package</phase> <!-- bind to the packaging phase -->
-  					<goals>
-  						<goal>single</goal>
-  					</goals>
-  				</execution>
-  			</executions>
-  		</plugin>
-
-  	</plugins>
-
-  	<pluginManagement>
-  	</pluginManagement>
-
-  </build>  
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <exclude>com.amazonaws:aws-java-sdk-textract</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-worklink</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-backup</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-docdb</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-apigatewayv2</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-apigatewaymanagementapi</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-kafka</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-appmesh</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-licensemanager</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-securityhub</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-fsx</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mediaconnect</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-kinesisanalyticsv2</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-comprehendmedical</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-globalaccelerator</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-transfer</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-datasync</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-robomaker</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-amplify</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-quicksight</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-rdsdata</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-route53resolver</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-ram</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-s3control</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-pinpointsmsvoice</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-pinpointemail</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-chime</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-signer</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-dlm</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-macie</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-eks</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mediatailor</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-neptune</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-pi</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-iot1clickprojects</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-iot1clickdevices</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-iotanalytics</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-acmpca</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-secretsmanager</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-fms</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-connect</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-transcribe</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-autoscalingplans</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-workmail</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-servicediscovery</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloud9</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-serverlessapplicationrepository</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-alexaforbusiness</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-resourcegroups</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-comprehend</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-translate</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-sagemaker</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-iotjobsdataplane</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-sagemakerruntime</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-kinesisvideo</exclude>
+                  <exclude>io.netty:netty-codec-http</exclude>
+                  <exclude>io.netty:netty-codec</exclude>
+                  <exclude>io.netty:netty-handler</exclude>
+                  <exclude>io.netty:netty-buffer</exclude>
+                  <exclude>io.netty:netty-common</exclude>
+                  <exclude>io.netty:netty-transport</exclude>
+                  <exclude>io.netty:netty-resolver</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-appsync</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-guardduty</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mq</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mediaconvert</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mediastore</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mediastoredata</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-medialive</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mediapackage</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-costexplorer</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-pricing</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mobile</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudhsmv2</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-glue</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-migrationhub</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-dax</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-greengrass</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-athena</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-marketplaceentitlement</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-codestar</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-lexmodelbuilding</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-resourcegroupstaggingapi</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-pinpoint</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-xray</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-opsworkscm</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-support</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-simpledb</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-servicecatalog</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-servermigration</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-simpleworkflow</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-storagegateway</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-route53</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-s3</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-importexport</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-sts</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-sqs</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-rds</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-redshift</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-elasticbeanstalk</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-glacier</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-iam</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-datapipeline</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-elasticloadbalancing</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-elasticloadbalancingv2</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-emr</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-elasticache</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-elastictranscoder</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-ec2</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-sns</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-budgets</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudtrail</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-logs</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-events</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cognitoidentity</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cognitosync</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-directconnect</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudformation</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudfront</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-clouddirectory</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-opsworks</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-ses</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-autoscaling</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudsearch</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudwatchmetrics</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-codedeploy</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-codepipeline</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-kms</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-config</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-lambda</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-ecs</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-ecr</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cloudhsm</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-ssm</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-workspaces</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-machinelearning</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-directory</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-efs</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-codecommit</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-devicefarm</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-elasticsearch</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-waf</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-marketplacecommerceanalytics</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-inspector</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-iot</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-api-gateway</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-acm</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-gamelift</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-dms</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-marketplacemeteringservice</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-cognitoidp</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-discovery</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-applicationautoscaling</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-snowball</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-rekognition</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-polly</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-lightsail</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-stepfunctions</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-health</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-costandusagereport</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-codebuild</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-appstream</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-shield</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-batch</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-lex</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-mechanicalturkrequester</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-organizations</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-workdocs</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-models</exclude>
+                  <exclude>com.amazonaws:aws-java-sdk-swf-libraries</exclude>
+                  <exclude>software.amazon.ion:ion-java</exclude>
+                  <exclude>com.amazonaws:jmespath-java</exclude>
+                </excludes>
+              </artifactSet>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.sumologic.client.SumologicExecutor</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Plugin for running with mvn exec:java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <configuration>
+          <mainClass>com.sumologic.client.SumologicExecutor</mainClass>
+          <addResourcesToClasspath>true</addResourcesToClasspath>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement/>
+  </build>
   <dependencies>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>amazon-kinesis-client</artifactId>
+      <version>1.9.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>amazon-kinesis-connectors</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>2.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.8.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>4.8.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.10</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ning</groupId>
+      <artifactId>async-http-client</artifactId>
+      <version>1.9.30</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.9.8</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.8</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.9.8</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-cbor</artifactId>
+      <version>2.9.8</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+      <version>1.11.534</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <version>1.11.534</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-kinesis</artifactId>
+      <version>1.11.534</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-cloudwatch</artifactId>
+      <version>1.11.534</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-dynamodb</artifactId>
+      <version>1.11.534</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20180813</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.4.11</version>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.10.1</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -175,71 +471,63 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.amazonaws</groupId>
-    	<artifactId>amazon-kinesis-client</artifactId>
-    	<version>1.4.0</version>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>6.1.26</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.amazonaws</groupId>
-    	<artifactId>amazon-kinesis-connectors</artifactId>
-    	<version>1.2.0</version>
-    </dependency>
-	<dependency>
-		<groupId>com.google.protobuf</groupId>
-		<artifactId>protobuf-java</artifactId>
-		<version>2.6.1</version>
-	</dependency>
-    <dependency>
-    	<groupId>commons-lang</groupId>
-    	<artifactId>commons-lang</artifactId>
-    	<version>2.6</version>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+      <version>6.1.26</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>org.apache.lucene</groupId>
-    	<artifactId>lucene-core</artifactId>
-    	<version>4.8.1</version>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
     </dependency>
     <dependency>
-    	<groupId>commons-codec</groupId>
-    	<artifactId>commons-codec</artifactId>
-    	<version>1.10</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>1.1.3</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.ning</groupId>
-    	<artifactId>async-http-client</artifactId>
-    	<version>1.9.30</version>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.google.code.gson</groupId>
-    	<artifactId>gson</artifactId>
-    	<version>2.3.1</version>
-    </dependency>
-	<dependency>
-		<groupId>log4j</groupId>
-		<artifactId>log4j</artifactId>
-		<version>1.2.17</version>
-	</dependency>
-    <dependency>
-		<groupId>org.slf4j</groupId>
-		<artifactId>slf4j-simple</artifactId>
-		<version>1.7.12</version>
-	</dependency>
-    <dependency>
-    	<groupId>org.hamcrest</groupId>
-    	<artifactId>hamcrest-core</artifactId>
-    	<version>1.3</version>
+      <groupId>net.sf.jopt-simple</groupId>
+      <artifactId>jopt-simple</artifactId>
+      <version>4.9</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>2.6.4</version>
+      <groupId>xmlunit</groupId>
+      <artifactId>xmlunit</artifactId>
+      <version>1.6</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.github.tomakehurst</groupId>
-    	<artifactId>wiremock</artifactId>
-    	<version>1.56</version>
-    	<scope>test</scope>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <version>1.2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>1.56</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
-
 </project>
