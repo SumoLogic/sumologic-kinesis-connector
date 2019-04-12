@@ -53,7 +53,7 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
             String msg = "Could not load properties file " + configFile + " from classpath";
             throw new IllegalStateException(msg, e);
         }
-        this.config = new KinesisConnectorForSumologicConfiguration(properties, getAWSCredentialsProvider());
+        this.config = new KinesisConnectorForSumologicConfiguration(properties, getAWSCredentialsProvider(configFile));
         
         LOG.info("Using " + configFile);
 
@@ -71,13 +71,13 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
      * 
      * @return
      */
-    public AWSCredentialsProvider getAWSCredentialsProvider() {
+    public AWSCredentialsProvider getAWSCredentialsProvider(String configFile) {
         return new AWSCredentialsProviderChain(
             new EnvironmentVariableCredentialsProvider(),
             new SystemPropertiesCredentialsProvider(),
             new ProfileCredentialsProvider(),
             new EC2ContainerCredentialsProviderWrapper(),
-            new ClasspathPropertiesFileCredentialsProvider("SumologicConnector.properties")
+            new ClasspathPropertiesFileCredentialsProvider(configFile)
         );
     }
 
