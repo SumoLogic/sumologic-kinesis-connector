@@ -1,6 +1,6 @@
 # Kinesis-Sumologic Connector
 
-The **Kinesis-Sumologic Connector** is a Java connector that acts as a pipeline between an [Amazon Kinesis] stream and a [Sumologic] Collection. Data gets fetched from the Kinesis Stream, transformed into a POJO and then sent to the Sumologic Collection as JSON. End-user setup instructions can be found in [here](https://support.sumologic.com/hc/en-us/articles/209667668-Sumo-Logic-App-for-Amazon-VPC-Flow-Logs-using-Kinesis).
+The **Kinesis-Sumologic Connector** is a Java connector that acts as a pipeline between an [Amazon Kinesis] stream and a [Sumologic] Collection. Data gets fetched from the Kinesis Stream, transformed into a POJO and then sent to the Sumologic Collection as JSON. End-user setup instructions can be found in [here](https://help.sumologic.com/03Send-Data/Collect-from-Other-Data-Sources/Amazon-CloudWatch-Logs/Collect-Amazon-CloudWatch-Logs-using-Amazon-Kinesis).
 
 ## Requirements
 
