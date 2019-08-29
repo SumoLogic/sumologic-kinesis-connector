@@ -11,6 +11,10 @@ public class SumologicExecutor extends
 		KinesisConnectorExecutor<SimpleKinesisMessageModel, String> {
 	private static String defaultConfigFile = "SumologicConnector.properties";
 
+	public SumologicExecutor() {
+		super();
+	}
+
 	/**
 	 * SumologicExecutor constructor.
 	 * 
@@ -37,29 +41,41 @@ public class SumologicExecutor extends
 		ArrayList<String> configFiles = new ArrayList<String>();
 		ArrayList<Thread> executorThreads = new ArrayList<Thread>();
 
+		Boolean use_env = false;
+
 		for (String arg : args) {
 			if (arg.endsWith(".properties")) {
 				configFiles.add(arg);
+			} else if (arg.equals("use-env")) {
+				use_env = true;
 			}
 		}
 
-		// if none of the arguments contained a config file, try the default
-		// file name
-		if (configFiles.size() == 0) {
-			configFiles.add(defaultConfigFile);
-		}
-
-		for (String configFile : configFiles) {
-
-			KinesisConnectorExecutor<SimpleKinesisMessageModel, String> sumologicExecutor = new SumologicExecutor(
-					configFile);
+		if (use_env) {
+			KinesisConnectorExecutor<SimpleKinesisMessageModel, String> sumologicExecutor = new SumologicExecutor();
 
 			Thread executorThread = new Thread(sumologicExecutor);
 			executorThreads.add(executorThread);
 			executorThread.start();
+
+		} else {
+			// if none of the arguments contained a config file, try the default
+			// file name
+			if (configFiles.size() == 0) {
+				configFiles.add(defaultConfigFile);
+			}
+
+			for (String configFile : configFiles) {
+				KinesisConnectorExecutor<SimpleKinesisMessageModel, String> sumologicExecutor = new SumologicExecutor(
+						configFile);
+
+				Thread executorThread = new Thread(sumologicExecutor);
+				executorThreads.add(executorThread);
+				executorThread.start();
+			}
 		}
 
-		for(Thread executorThread : executorThreads){
+		for (Thread executorThread : executorThreads) {
 			executorThread.join();
 		}
 	}

@@ -31,6 +31,22 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
     protected final KinesisConnectorForSumologicConfiguration config;
     private final Properties properties;
 
+    public KinesisConnectorExecutor() {
+        // Load ENV vars into properties
+        LOG.info("Using ENV vars for properties");
+
+        properties = new Properties();
+        System.getenv().forEach(properties::setProperty);
+
+        this.config = new KinesisConnectorForSumologicConfiguration(properties, getAWSCredentialsProvider());
+
+        // Send sample data to AWS Kinesis if specified in the properties file
+        setupInputStream();
+
+        // Initialize executor with configurations
+        super.initialize((KinesisConnectorConfiguration)config);
+    }
+
     /**
      * Create a new KinesisConnectorExecutor based on the provided configuration (*.propertes) file.
      * 
@@ -71,6 +87,10 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
      * 
      * @return
      */
+    public AWSCredentialsProvider getAWSCredentialsProvider() {
+        return new DefaultAWSCredentialsProviderChain();
+    }
+
     public AWSCredentialsProvider getAWSCredentialsProvider(String configFile) {
         return new AWSCredentialsProviderChain(
             new EnvironmentVariableCredentialsProvider(),
