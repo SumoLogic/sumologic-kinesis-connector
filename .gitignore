@@ -12,6 +12,8 @@
 hs_err_pid*
 
 *.properties
+!log4j.properties
 .idea/
 *.iml
 .scratch/
+target/
