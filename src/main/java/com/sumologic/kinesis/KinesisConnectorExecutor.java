@@ -7,13 +7,9 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 import com.sumologic.client.KinesisConnectorForSumologicConfiguration;
-import com.sumologic.client.SumologicMessageModelPipeline;
-import com.sumologic.client.model.SimpleKinesisMessageModel;
-import com.sumologic.kinesis.KinesisConnectorExecutorBase;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
+import com.amazonaws.auth.*;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.kinesis.connectors.KinesisConnectorConfiguration;
-import com.amazonaws.services.kinesis.connectors.interfaces.ITransformer;
 
 /**
  * This class defines the execution of a Amazon Kinesis Connector.
@@ -57,7 +53,7 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
             String msg = "Could not load properties file " + configFile + " from classpath";
             throw new IllegalStateException(msg, e);
         }
-        this.config = new KinesisConnectorForSumologicConfiguration(properties, getAWSCredentialsProvider());
+        this.config = new KinesisConnectorForSumologicConfiguration(properties, getAWSCredentialsProvider(configFile));
         
         LOG.info("Using " + configFile);
 
@@ -75,8 +71,14 @@ public abstract class KinesisConnectorExecutor<T, U> extends KinesisConnectorExe
      * 
      * @return
      */
-    public AWSCredentialsProvider getAWSCredentialsProvider() {
-        return new ClasspathPropertiesFileCredentialsProvider("SumologicConnector.properties");
+    public AWSCredentialsProvider getAWSCredentialsProvider(String configFile) {
+        return new AWSCredentialsProviderChain(
+            new EnvironmentVariableCredentialsProvider(),
+            new SystemPropertiesCredentialsProvider(),
+            new ProfileCredentialsProvider(),
+            new EC2ContainerCredentialsProviderWrapper(),
+            new ClasspathPropertiesFileCredentialsProvider(configFile)
+        );
     }
 
     /**
