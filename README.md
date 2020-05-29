@@ -1,13 +1,13 @@
 # Kinesis-Sumologic Connector
 
-The **Kinesis-Sumologic Connector** is a Java connector that acts as a pipeline between an [Amazon Kinesis] stream and a [Sumologic] Collection. Data gets fetched from the Kinesis Stream, transformed into a POJO and then sent to the Sumologic Collection as JSON. End-user setup instructions can be found in [here](https://help.sumologic.com/03Send-Data/Collect-from-Other-Data-Sources/Amazon-CloudWatch-Logs/Collect-Amazon-CloudWatch-Logs-using-Amazon-Kinesis).
+The **Kinesis-Sumologic Connector** is a Java connector that acts as a pipeline between an [Amazon Kinesis] stream and a [Sumo Logic] Collection. Data gets fetched from the Kinesis Stream, transformed into a POJO and then sent to the Sumo Logic Collection as JSON. End-user setup instructions can be found in [here](https://help.sumologic.com/03Send-Data/Collect-from-Other-Data-Sources/Amazon-CloudWatch-Logs/Collect-Amazon-CloudWatch-Logs-using-Amazon-Kinesis).
 
 ## Requirements
 
  + **Java JDK 1.8**: This connector has been built with Java version 1.8.
  + **Maven**: A pom.xml file has been provided to build the connector with Maven.
  + **AWS Kinesis Account**: An Amazon AWS Kinesis account to use as a source of data.
- + **Sumologic Account**: A Sumologic account to use as a destination.
+ + **Sumo Logic Account**: A Sumo Logic account to use as a destination.
 
 ## Overview
 
@@ -16,7 +16,7 @@ Incoming records from one (or many) Shards of an AWS Kinesis Stream will be read
  + **Transformed**: Raw records will be transformed into a POJO using a Kinesis Model class and then serialized. The transformer used will be specified in the properties file.
  + **Filtered**: A filter may be applied to the records. Default filter will let all records pass.
  + **Buffered**: A custom buffer may be used to define thresholds that, when crossed, will flush all records into the emitter.
- + **Emitted**: The records will get send to the Sumologic Collector.
+ + **Emitted**: The records will get send to the Sumo Logic Collector.
 
 ## Installation
 
@@ -32,7 +32,7 @@ The appender can be added to your project using Maven Central by adding the foll
 
 ## Configuration
 
-A sample properties file is provided, which should be modified to use your AWS Accounts (**accessKey** and **secretKey**), Kinesis Stream(**kinesisInputStream**), Sumologic HTTP source (**sumologicUrl**), App Name (**appName**) and Transformer class used (**transformerClass**). Reading from multiple kinesis streams is also supported (see PR14) by specifying multiple config files, launching multiple SumologicExecutors like so:
+A sample properties file is provided, which should be modified to use your AWS Accounts (**accessKey** and **secretKey**), Kinesis Stream(**kinesisInputStream**), Sumo Logic HTTP source (**sumologicUrl**), App Name (**appName**) and Transformer class used (**transformerClass**). Reading from multiple kinesis streams is also supported (see PR14) by specifying multiple config files, launching multiple SumologicExecutors like so:
 ```
 mvn clean compile exec:java -Dexec.args="app1.properties app2.properties"
 ```
